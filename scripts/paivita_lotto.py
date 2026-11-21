@@ -112,7 +112,7 @@ def main():
 
     for year, week in candidate_weeks(now):
         try:
-            candidates.extend(fetch_week(year, week))
+            candidates.extend(flatten_draws(fetch_week(year, week)))
         except Exception as exc:
             print(f"Rajapintahaku epäonnistui {year}-W{week:02d}: {exc}", file=sys.stderr)
 
