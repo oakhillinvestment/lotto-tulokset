@@ -1,13 +1,10 @@
-name: Päivitä Lotto
+name: Paivita Lotto
 
 on:
-  schedule:
-    # Lauantain 22:15 ja varmistusyritys 23:15 Suomen aikaa.
-    - cron: "15 22 * * 6"
-      timezone: "Europe/Helsinki"
-    - cron: "15 23 * * 6"
-      timezone: "Europe/Helsinki"
   workflow_dispatch:
+  schedule:
+    - cron: "15 20 * * 6"
+    - cron: "15 21 * * 6"
 
 permissions:
   contents: write
@@ -15,12 +12,11 @@ permissions:
 jobs:
   paivita:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Päivitä Lotto
+      - name: Paivita Lotto
         run: python3 scripts/paivita_lotto.py
 
       - name: Tarkista muutokset
@@ -38,5 +34,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/lotto.csv
-          git commit -m "Päivitä Lottoarvonta"
+          git commit -m "Paivita Lottoarvonta"
           git push
