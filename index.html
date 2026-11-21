@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lottoarkisto – tarkista rivisi osumahistoria</title>
+
+  <meta
+    name="description"
+    content="Syötä oma Lotto-rivisi tai arvo satunnainen rivi. Vertaa numeroita arvontahistoriaan ja katso osumat päivämäärineen."
+  >
+
+  <link rel="stylesheet" href="assets/style.css?v=8">
+
+  <style>
+    .site-nav {
+      margin-top: 0.7rem;
+    }
+    .site-nav a {
+      font-weight: 700;
+    }
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      gap: 0.55rem;
+      max-width: 540px;
+      margin: 1rem auto;
+    }
+    .number-grid button {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      min-height: 0;
+      padding: 0;
+      border: 2px solid #b8b8b8;
+      border-radius: 50%;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .number-grid button:hover {
+      border-color: #333;
+      transform: translateY(-1px);
+    }
+    .number-grid button.selected {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+    .number-grid button:focus-visible {
+      outline: 3px solid #5b9bd5;
+      outline-offset: 2px;
+    }
+    .selected-numbers {
+      margin: 0.8rem 0 1rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 0.45rem;
+      background: #f3f3f3;
+    }
+    .selected-numbers strong {
+      display: inline-block;
+      margin-left: 0.35rem;
+      letter-spacing: 0.04em;
+    }
+    .hidden-number-inputs {
+      display: none;
+    }
+    @media (max-width: 520px) {
+      .number-grid {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+    }
+  </style>
+  <script src="assets/app.js?v=8" defer></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#paasisalto">
+    Siirry sisältöön
+  </a>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="site-name" href="./">
+        Lottoarkisto
+      </a>
+
+      <p>Lottohistorian tutkimiseen ja kokeiluun.</p>
+      <nav class="site-nav" aria-label="Sivuston osiot">
+        <a href="labra/">🧪 Lottoarkiston Labra</a>
+        <a href="tietosuoja.html">Tietosuoja</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="paasisalto" class="container">
+
+    <!-- Johdanto -->
+    <section class="intro" aria-labelledby="sivun-otsikko">
+      <h1 id="sivun-otsikko">Olisiko rivisi osunut?</h1>
+
+      <p>
+        Syötä oma vakiorivisi tai arvo satunnainen rivi.
+        Näet, miten numerot ovat osuneet käytettävissä
+        olevassa Lotto-historiassa.
+      </p>
+    </section>
+
+    <!-- Numerosyöttö ja rivin arvonta -->
+    <section
+      id="rivin-tarkistus"
+      class="card"
+      aria-labelledby="tarkistus-otsikko"
+    >
+      <h2 id="tarkistus-otsikko">Kokeile Lotto-riviä</h2>
+
+      <button id="arvo-rivi" type="button" disabled>
+        Arvo minulle Lotto-rivi
+      </button>
+
+      <p>Tai syötä omat numerosi:</p>
+
+      <form id="rivi-lomake">
+        <fieldset aria-describedby="numero-ohje">
+          <legend>Seitsemän omaa numeroa</legend>
+
+          <p id="numero-ohje">
+            Anna seitsemän eri kokonaislukua väliltä 1–40.
+            Numeroiden järjestyksellä ei ole merkitystä.
+          </p>
+
+          <div class="number-grid" id="numero-ruudukko" role="group" aria-label="Valitse seitsemän Lotto-numeroa">
+            <!-- JavaScript muodostaa numerot 1–40 tähän. -->
+          </div>
+
+          <div class="selected-numbers" aria-live="polite">
+            <span>Valitut numerot:</span>
+            <strong id="valitut-numerot">ei vielä valittu</strong>
+          </div>
+
+          <div class="hidden-number-inputs" aria-hidden="true">
+            <input id="numero-1" name="numero1" type="hidden">
+            <input id="numero-2" name="numero2" type="hidden">
+            <input id="numero-3" name="numero3" type="hidden">
+            <input id="numero-4" name="numero4" type="hidden">
+            <input id="numero-5" name="numero5" type="hidden">
+            <input id="numero-6" name="numero6" type="hidden">
+            <input id="numero-7" name="numero7" type="hidden">
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button id="tarkista-rivi" type="submit" disabled>
+            Tarkista rivi
+          </button>
+
+          <button id="tyhjenna-rivi" type="reset">
+            Tyhjennä
+          </button>
+        </div>
+
+        <p id="lomakevirhe" role="alert" hidden></p>
+      </form>
+
+      <p id="lataustila" role="status">
+        Tarkistus- ja arvontatoiminnot otetaan käyttöön
+        JavaScript-toteutuksen valmistuttua.
+      </p>
+
+      <p id="aineiston-tiivistelma" hidden>
+        Aineisto:
+        <span id="aineiston-alku"></span>–<span id="aineiston-loppu"></span>
+        · <span id="aineiston-maara"></span> arvontaa.
+      </p>
+
+      <noscript>
+        <p>
+          Rivin tarkistaminen ja arpominen tarvitsevat JavaScriptin.
+        </p>
+      </noscript>
+    </section>
+
+    <!-- Tulokset näytetään vasta tarkistuksen jälkeen -->
+    <section
+      id="tulokset"
+      class="card"
+      aria-labelledby="tulokset-otsikko"
+      hidden
+    >
+      <h2 id="tulokset-otsikko" tabindex="-1">
+        Rivisi osumahistoria
+      </h2>
+
+      <p>
+        Tarkistettu rivi:
+        <span id="tarkistettu-rivi"></span>
+      </p>
+
+      <p id="tulosyhteenveto"></p>
+
+      <dl id="osumayhteenveto">
+        <!-- JavaScript lisää osumaluokat ja niiden lukumäärät. -->
+      </dl>
+
+      <button id="arvo-uusi-rivi" type="button" disabled>
+        Arvo uusi rivi
+      </button>
+
+      <h3>Osumat päivämäärineen</h3>
+
+      <p id="ei-osumia" hidden>
+        Rivillesi ei löytynyt näytettäviä osumia
+        tarkastellulta ajanjaksolta.
+      </p>
+
+      <div
+        id="osumataulukon-kehys"
+        class="table-scroll"
+        hidden
+      >
+        <table>
+          <caption>
+            Arvonnat, joissa osui vähintään neljä päänumeroa
+            tai kolme päänumeroa ja lisänumero.
+          </caption>
+
+          <thead>
+            <tr>
+              <th scope="col">Arvontapäivä</th>
+              <th scope="col">Osuma</th>
+              <th scope="col">Osuneet päänumerot</th>
+              <th scope="col">Osunut lisänumero</th>
+            </tr>
+          </thead>
+
+          <tbody id="osumataulukko">
+            <!-- JavaScript lisää osumat tähän. -->
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Vertailu näyttää numeroiden osumat, ei sitä,
+        oliko rivi pelattuna kyseisillä kierroksilla.
+        Mukana eivät ole lisämaksulliset lisäominaisuudet
+        tai erilliset lisäarvonnat.
+      </p>
+
+      <p>
+        Viralliset tulokset ja voitonjaot voit tarkistaa
+        <a
+          href="https://www.veikkaus.fi/fi/tulokset"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Veikkauksen tulosarkistosta (avautuu uuteen välilehteen)</a>.
+      </p>
+    </section>
+
+
+    <!-- Vanha Lottohistoria -->
+    <section
+      id="vanha-historia"
+      class="card"
+      aria-labelledby="vanha-historia-otsikko"
+    >
+      <h2 id="vanha-historia-otsikko">📜 Lottohistoria 1971–2017</h2>
+
+      <p>
+        Vanha Lottohistoria on käsitelty erillisenä aineistona, koska
+        Lotto muuttui vuosien aikana. Historiallisessa vertailussa tarkastellaan
+        vain päänumeroiden osumia.
+      </p>
+
+      <button id="tarkista-vanha-historia" type="button">
+        🔎 Tarkista myös vanhasta historiasta
+      </button>
+
+      <p id="vanha-historia-tila" role="status">
+        Vanha historia ladataan vasta, kun painat tarkistuspainiketta.
+      </p>
+
+      <div id="vanha-historia-tulos" hidden>
+        <p id="vanha-historia-yhteenveto"></p>
+
+        <div class="table-scroll">
+          <table>
+            <caption>Historialliset arvonnat, joissa riville osui vähintään neljä päänumeroa.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Arvontapäivä</th>
+                <th scope="col">Osumat</th>
+                <th scope="col">Osuneet numerot</th>
+              </tr>
+            </thead>
+            <tbody id="vanha-historia-taulukko"></tbody>
+          </table>
+        </div>
+
+        <p id="vanha-historia-ei-osumia" hidden>
+          Riville ei löytynyt vähintään neljän päänumeron osumia vanhasta historiasta.
+        </p>
+      </div>
+    </section>
+
+    <!-- HalpaaOn-kutsu -->
+    <aside
+      id="halpaaon-kutsu"
+      class="card"
+      aria-labelledby="halpaaon-otsikko"
+      hidden
+    >
+      <h2 id="halpaaon-otsikko">Ei tällä kertaa miljonääriksi?</h2>
+      <p>
+        Eikö onni suosinut? Et ole vielä miljonääri. Ei hätää — katso,
+        mitä löydät HalpaaOn.comista.
+      </p>
+      <p>
+        <a
+          class="button"
+          href="https://halpaaon.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Ostele kuin et olisi miljonääri →</a>
+      </p>
+    </aside>
+
+    <!-- Varattu myöhempää mainostoteutusta varten -->
+    <aside
+      id="mainospaikka"
+      class="ad-slot"
+      aria-label="Mainos"
+      hidden
+    >
+      <p class="ad-label">Mainos</p>
+      <div id="mainos-sisalto"></div>
+    </aside>
+
+    <!-- Viimeisin tallennettu arvonta -->
+    <section
+      id="viimeisin-arvonta"
+      class="card"
+      aria-labelledby="viimeisin-otsikko"
+    >
+      <h2 id="viimeisin-otsikko">
+        Viimeisin tallennettu arvonta
+      </h2>
+
+      <p id="viimeisin-tila">
+        Arvontatietojen näyttö lisätään JavaScript-toteutuksessa.
+      </p>
+
+      <div id="viimeisin-sisalto" hidden>
+        <p>
+          Arvontapäivä:
+          <time id="viimeisin-paiva"></time>
+        </p>
+
+        <h3>Päänumerot</h3>
+        <ul id="viimeisimmat-numerot" class="lotto-numbers"></ul>
+
+        <p>
+          Lisänumero:
+          <span id="viimeisin-lisanumero"></span>
+        </p>
+      </div>
+    </section>
+<!-- Tietoa ja rajaukset -->
+    <section
+      id="tietoa"
+      class="card"
+      aria-labelledby="tietoa-otsikko"
+    >
+      <h2 id="tietoa-otsikko">Tietoa Lottoarkistosta</h2>
+
+      <p>
+        Lottoarkisto on riippumaton lottohistorian tutkimiseen
+        ja viihteelliseen kokeiluun tarkoitettu palvelu.
+        Se ei ole Veikkauksen virallinen palvelu.
+      </p>
+
+      <p>
+        Tulostiedot kerätään Veikkauksen julkaisemasta
+        tulosrajapinnasta. Aineisto voi sisältää puutteita
+        tai virheitä. Tarkista viralliset tulokset Veikkaukselta.
+      </p>
+
+      <p>
+        Jokainen mahdollinen seitsemän numeron rivi on
+        seuraavassa tasapuolisessa 7/40-arvonnassa yhtä
+        todennäköinen riippumatta aikaisemmista tuloksista.
+        Palvelu ei ennusta tulevia arvontatuloksia.
+      </p>
+
+      <h3>Tietosuoja</h3>
+      <p>
+        Syöttämääsi Lotto-riviä käsitellään sivulla rivin tarkistamista varten.
+        Lottoarkisto ei pyydä nimeäsi, sähköpostiosoitettasi tai muita
+        henkilötietoja eikä tallenna syöttämääsi riviä palvelimelle.
+        Älä syötä palveluun henkilötietoja.
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Lottoarkisto – riippumaton tulosarkisto.</p>
+      <a href="#paasisalto">Takaisin alkuun</a>
+    </div>
+  </footer>
+</body>
+</html>
