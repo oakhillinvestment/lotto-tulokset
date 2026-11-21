@@ -2,6 +2,9 @@ name: Paivita Lotto
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/paivita-lotto.yml"
   schedule:
     - cron: "15 20 * * 6"
     - cron: "15 21 * * 6"
