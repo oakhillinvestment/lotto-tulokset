@@ -1,0 +1,42 @@
+name: Päivitä Lotto
+
+on:
+  schedule:
+    # Lauantain 22:15 ja varmistusyritys 23:15 Suomen aikaa.
+    - cron: "15 22 * * 6"
+      timezone: "Europe/Helsinki"
+    - cron: "15 23 * * 6"
+      timezone: "Europe/Helsinki"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  paivita:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Päivitä Lotto
+        run: python3 scripts/paivita_lotto.py
+
+      - name: Tarkista muutokset
+        id: muutokset
+        run: |
+          if git diff --quiet -- data/lotto.csv; then
+            echo "muuttui=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "muuttui=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit ja push
+        if: steps.muutokset.outputs.muuttui == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/lotto.csv
+          git commit -m "Päivitä Lottoarvonta"
+          git push
