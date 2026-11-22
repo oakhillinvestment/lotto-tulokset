@@ -117,10 +117,17 @@ def main():
             print(f"Rajapintahaku epäonnistui {year}-W{week:02d}: {exc}", file=sys.stderr)
 
     # Valitaan uusin tulos, joka on CSV:n viimeistä päivää uudempi.
-    candidates = [
-        d for d in candidates
-        if d["date"] > latest_date and (not d["id"] or d["id"] not in existing_ids)
-    ]
+    # Suodatetaan vain täydelliset arvontatietueet. Tämä estää yhden
+    # poikkeavan API-vastauksen kaatamasta koko automaatiota.
+    valid_candidates = []
+    for d in candidates:
+        if not isinstance(d, dict) or not d.get("date"):
+            print(f"Ohitetaan puutteellinen API-tietue: {d!r}", file=sys.stderr)
+            continue
+        if d["date"] > latest_date and (not d.get("id") or d["id"] not in existing_ids):
+            valid_candidates.append(d)
+
+    candidates = valid_candidates
 
     if not candidates:
         print(f"Ei uutta Lottoarvontaa. CSV:n viimeisin päivä: {latest_date}")
