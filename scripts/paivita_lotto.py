@@ -19,6 +19,8 @@ def load_csv():
     return rows
 
 def parse_date(value):
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value / 1000, tz=timezone.utc)
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 def fetch_week(year, week):
