@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/paivita-lotto.yml"
+      - "scripts/paivita_lotto.py"
   schedule:
     - cron: "15 20 * * 6"
     - cron: "15 21 * * 6"
